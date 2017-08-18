@@ -30,8 +30,14 @@ export class Call {
 		this.webrtc.data.username = this.username || "Guest";
 		this.webrtc.roomid= this.roomname || "webrtc";
     	this.webrtc.data.streamStatus = {};
-		console.log('this.webrtc', this.webrtc);
+		console.log('this.webrtc', JSON.stringify(this.webrtc) );
     	this.webrtc.joinroom();
+        this.webrtc.getDevices((devices) => {
+            this.allDevices.audioDevices = Object.keys(devices.audioIp).map(function (key) { return devices.audioIp[key]; });
+            this.allDevices.videoDevices = Object.keys(devices.videoIp).map(function (key) { return devices.videoIp[key]; });
+            console.log('allDevices', this.allDevices);
+    
+        });
     	this.webrtc.onlocalstream = (event)=>{
     		if(this.localstreamid === undefined) {
     			this.localstreamid = event.stream.id;
@@ -42,12 +48,6 @@ export class Call {
 			_video.srcObject = event.stream;
             _video.play();
 		}
-		this.webrtc.ondevice = devices => {
-	        this.allDevices.audioDevices = Object.keys(devices.audioIp).map(function (key) { return devices.audioIp[key]; });
-	        this.allDevices.videoDevices = Object.keys(devices.videoIp).map(function (key) { return devices.videoIp[key]; });
-	        console.log('allDevices', this.allDevices);
-	
-	    }
 		this.webrtc.onremotestream = (event)=>{
 			console.log('remote',event);
 			this.remotestreams.unshift(event);
@@ -106,7 +106,10 @@ export class Call {
     switchDevice(event:any) {
     	console.log('switchDevice',this.selectedDevice,event);
     	var constraint = this.webrtc.getConstraints( {audioId:this.selectedDevice.audio ,videoId:this.selectedDevice.video} );
+        
+        console.log('constraint',constraint);
         this.webrtc.switchStream(this.localstreamid, constraint, (error, newstream)=>{
+            console.log('newstream', newstream);
             let _video=this.local.nativeElement;
 			_video.srcObject = newstream;
             _video.play();

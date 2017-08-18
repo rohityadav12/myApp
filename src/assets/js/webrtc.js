@@ -186,8 +186,7 @@ function Webrtc() {
                     self.remoteusers = rooms;
                     self.peerAddStream(self.localstreams[firststreamid]);
                     
-                });
-                self.getDevices(self.ondevice);
+                });                
 
                 self.onlocalstream({ id:currentSocketId, stream: stream, data: self.data });
             });
@@ -362,7 +361,7 @@ function Webrtc() {
         temp = temp.replace(/a=mid:audio\r\n/gi, 'a=mid:audio\r\nb=AS:'+self.audioBandwidth+'\r\n');
         temp = temp.replace(/a=mid:video\r\n/gi, 'a=mid:video\r\nb=AS:'+self.videoBandwidth+'\r\n');
         sdp.sdp = temp;
-        debug.info('sdp', temp);
+        //debug.info('sdp', temp);
         return sdp;
     }
     this.muteUnmute = streamid => {
@@ -622,35 +621,63 @@ function Webrtc() {
         debug.warn('unused onmessage');
     }
     self.getDevices = (callback)=> {
-        debug.log('get devices');
         var dv = { audioIp:{}, videoIp: {} };
-        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+
+        if (!navigator.enumerateDevices && window.MediaStreamTrack && window.MediaStreamTrack.getSources) {
+            navigator.mediaDevices.enumerateDevices = window.MediaStreamTrack.getSources.bind(window.MediaStreamTrack);
+            debug.log('window.MediaStreamTrack');
+            
+            window.MediaStreamTrack.getSources((devices)=> {
+                var ai = 0;
+                console.log('devices', devices);
+                    devices.forEach( (device)=> {
+                        if( device.kind == 'default' || device.label == 'Default' || device.id == 'default') {
+                            return false;
+                        }
+                        if(device.id != 'default' ) {
+
+                            if( device.kind == 'audio') {
+                                ai++;
+                                dv.audioIp[device.id] = { label: device.label || 'audio'+ai, value: device.id };
+                            }
+                            if( device.kind == 'video') {
+                                dv.videoIp[device.id] = { label: device.facing, value: device.id };
+                            }
+                        }
+                    });
+                    console.log('getdevice', dv)
+                    callback(dv);
+                });
+        }else if (navigator.mediaDevices || navigator.mediaDevices.enumerateDevices) {
+            // List cameras and microphones.
+            navigator.mediaDevices.enumerateDevices()
+            .then((devices)=> {
+                    devices.forEach( (device)=> {
+                        if( device.kind == 'default' || device.label == 'Default' || device.deviceId == 'default') {
+                            return false;
+                        }
+                        if(device.label != 'Default' && device.deviceId != 'default') {
+
+                            if( device.kind == 'audioinput') {
+                                dv.audioIp[device.deviceId] = { label: device.label, value: device.deviceId };
+                            }
+                            if( device.kind == 'videoinput') {
+                                dv.videoIp[device.deviceId] = { label: device.label, value: device.deviceId };
+                            }
+                        }
+                    });
+                    console.log('getdevice', dv)
+                    callback(dv);
+                })
+            .catch( (err)=> {
+              debug.log(err.name + ": " + err.message);
+            });
+        }else {
             debug.warn("enumerateDevices() not supported.");
             return false;
         }
 
-        // List cameras and microphones.
-        navigator.mediaDevices.enumerateDevices()
-        .then( (devices)=> {
-            devices.forEach( (device)=> {
-                if( device.kind == 'default' || device.label == 'Default' || device.deviceId == 'default') {
-                    return false;
-                }
-                if(device.label != 'Default' && device.deviceId != 'default') {
-
-                    if( device.kind == 'audioinput') {
-                        dv.audioIp[device.deviceId] = { label: device.label, value: device.deviceId };
-                    }
-                    if( device.kind == 'videoinput') {
-                        dv.videoIp[device.deviceId] = { label: device.label, value: device.deviceId };
-                    }
-                }
-            });
-            callback(dv);
-        })
-        .catch( (err)=> {
-          debug.log(err.name + ": " + err.message);
-        });
+        
     }
 
     //screen share plugin code
