@@ -1,0 +1,35 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>Room: {{roomname}}</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  
+  <span *ngFor="let rs of remotestreams" class="inline">
+    
+    <video [id]="rs.stream.id" width="320" height="240" autoplay controls="" [srcObject]="rs.stream" ></video>
+    <div class="username">username: <b>{{rs.data.username}}</b></div>
+    
+  </span>
+  <span class="inline">
+    
+    <video #local id="local" width="320" muted height="240" autoplay controls=""></video>
+    <div class="username"> username: <b>{{webrtc.data.username}}</b></div>
+    <ion-item *ngIf="remotestreams.length">
+      <ion-label>Audio Devices:</ion-label>
+      <ion-select [(ngModel)]="selectedDevice.audio" (ngModelChange)="switchDevice($event)">
+        <ion-option value="">select</ion-option>
+        <ion-option *ngFor="let ad of allDevices.audioDevices" [value]="ad.value">{{ad.label}}</ion-option>
+      </ion-select>
+    </ion-item>
+    <ion-item *ngIf="remotestreams.length">
+      <ion-label>Video Devices:</ion-label>
+      <ion-select [(ngModel)]="selectedDevice.video" (ngModelChange)="switchDevice($event)">
+        <ion-option value="">select</ion-option>
+        <ion-option *ngFor="let vd of allDevices.videoDevices" [value]="vd.value">{{vd.label}}</ion-option>
+      </ion-select>
+    </ion-item>
+  </span>
+  
+</ion-content>

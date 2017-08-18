@@ -1,0 +1,37 @@
+<ion-header>
+  <ion-navbar>
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>Talkroom.io</ion-title>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content padding>
+
+  <ion-row>
+      <ion-col>
+        <ion-list >
+
+          <ion-item>
+            <ion-label>Username</ion-label>
+            <ion-input type="text" [(ngModel)]="username"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Roomname</ion-label>
+            <ion-input type="text" [(ngModel)]="roomname"></ion-input>
+          </ion-item>
+
+        </ion-list>
+      </ion-col>
+    </ion-row>
+
+  <ion-row>
+      <ion-col>
+        <button ion-button block (click)="submitform()">Login</button>
+      </ion-col>
+    </ion-row>
+
+</ion-content>
